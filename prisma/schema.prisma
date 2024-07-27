@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int        @id @default(autoincrement()) // Уникальный идентификатор пользователя
+  authId    String     @unique // Идентификатор пользователя из Supabase
+  username  String // Уникальное имя пользователя
+  email     String     @unique // Уникальный email пользователя
+  password  String // Пароль пользователя (если нужно, можно удалить, если используется только Supabase)
+  messages  Message[] // Связь один ко многим с моделью Message
+  rooms     RoomUser[] // Связь многие ко многим с моделью Room через промежуточную таблицу RoomUser
+  createdAt DateTime   @default(now()) // Время создания пользователя
+  updatedAt DateTime   @updatedAt // Время последнего обновления пользователя
+}
+
+model Room {
+  id        Int        @id @default(autoincrement()) // Уникальный идентификатор комнаты
+  name      String     @unique // Уникальное имя комнаты
+  messages  Message[] // Связь один ко многим с моделью Message
+  users     RoomUser[] // Связь многие ко многим с моделью User через промежуточную таблицу RoomUser
+  createdAt DateTime   @default(now()) // Время создания комнаты
+  updatedAt DateTime   @updatedAt // Время последнего обновления комнаты
+}
+
+model Message {
+  id        Int      @id @default(autoincrement()) // Уникальный идентификатор сообщения
+  text      String // Текст сообщения
+  userId    Int // Идентификатор пользователя, отправившего сообщение
+  user      User     @relation(fields: [userId], references: [id]) // Связь с моделью User
+  roomId    Int // Идентификатор комнаты, в которой отправлено сообщение
+  room      Room     @relation(fields: [roomId], references: [id]) // Связь с моделью Room
+  createdAt DateTime @default(now()) // Время отправки сообщения
+}
+
+model RoomUser {
+  id       Int      @id @default(autoincrement()) // Уникальный идентификатор связи
+  userId   Int // Идентификатор пользователя
+  roomId   Int // Идентификатор комнаты
+  user     User     @relation(fields: [userId], references: [id]) // Связь с моделью User
+  room     Room     @relation(fields: [roomId], references: [id]) // Связь с моделью Room
+  joinedAt DateTime @default(now()) // Время присоединения пользователя к комнате
+
+  @@unique([userId, roomId]) // Уникальная комбинация userId и roomId
+}
