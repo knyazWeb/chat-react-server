@@ -16,7 +16,6 @@ model User {
   authId    String     @unique // Идентификатор пользователя из Supabase
   username  String // Уникальное имя пользователя
   email     String     @unique // Уникальный email пользователя
-  password  String // Пароль пользователя (если нужно, можно удалить, если используется только Supabase)
   messages  Message[] // Связь один ко многим с моделью Message
   rooms     RoomUser[] // Связь многие ко многим с моделью Room через промежуточную таблицу RoomUser
   createdAt DateTime   @default(now()) // Время создания пользователя
