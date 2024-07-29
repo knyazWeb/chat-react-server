@@ -10,6 +10,7 @@ import cors from "cors";
 import http from "http";
 import socketIOMiddleware from "./app/middleware/socketIO.js";
 import { Server } from "socket.io";
+import {webSocket} from "./app/utils/websocket.js";
 
 
 dotenv.config();
