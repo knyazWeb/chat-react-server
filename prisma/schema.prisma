@@ -12,42 +12,42 @@ generator client {
 }
 
 model User {
-  id        Int        @id @default(autoincrement()) // Уникальный идентификатор пользователя
-  authId    String     @unique // Идентификатор пользователя из Supabase
-  username  String // Уникальное имя пользователя
-  email     String     @unique // Уникальный email пользователя
-  messages  Message[] // Связь один ко многим с моделью Message
-  rooms     RoomUser[] // Связь многие ко многим с моделью Room через промежуточную таблицу RoomUser
-  createdAt DateTime   @default(now()) // Время создания пользователя
-  updatedAt DateTime   @updatedAt // Время последнего обновления пользователя
+  id        Int        @id @default(autoincrement())
+  authId    String     @unique
+  username  String
+  email     String     @unique
+  messages  Message[]
+  rooms     RoomUser[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model Room {
-  id        Int        @id @default(autoincrement()) // Уникальный идентификатор комнаты
-  name      String     @unique // Уникальное имя комнаты
-  messages  Message[] // Связь один ко многим с моделью Message
-  users     RoomUser[] // Связь многие ко многим с моделью User через промежуточную таблицу RoomUser
-  createdAt DateTime   @default(now()) // Время создания комнаты
-  updatedAt DateTime   @updatedAt // Время последнего обновления комнаты
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  messages  Message[]
+  users     RoomUser[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model Message {
-  id        Int      @id @default(autoincrement()) // Уникальный идентификатор сообщения
-  text      String // Текст сообщения
-  userId    Int // Идентификатор пользователя, отправившего сообщение
-  user      User     @relation(fields: [userId], references: [id]) // Связь с моделью User
-  roomId    Int // Идентификатор комнаты, в которой отправлено сообщение
-  room      Room     @relation(fields: [roomId], references: [id]) // Связь с моделью Room
-  createdAt DateTime @default(now()) // Время отправки сообщения
+  id        Int      @id @default(autoincrement())
+  text      String
+  authId    String
+  user      User     @relation(fields: [authId], references: [authId])
+  roomId    Int
+  room      Room     @relation(fields: [roomId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 model RoomUser {
-  id       Int      @id @default(autoincrement()) // Уникальный идентификатор связи
-  userId   Int // Идентификатор пользователя
-  roomId   Int // Идентификатор комнаты
-  user     User     @relation(fields: [userId], references: [id]) // Связь с моделью User
-  room     Room     @relation(fields: [roomId], references: [id]) // Связь с моделью Room
-  joinedAt DateTime @default(now()) // Время присоединения пользователя к комнате
+  id       Int      @id @default(autoincrement())
+  authId   String
+  roomId   Int
+  user     User     @relation(fields: [authId], references: [authId])
+  room     Room     @relation(fields: [roomId], references: [id])
+  joinedAt DateTime @default(now())
 
-  @@unique([userId, roomId]) // Уникальная комбинация userId и roomId
+  @@unique([authId, roomId])
 }

@@ -2,6 +2,8 @@ import { prisma } from "../utils/prisma.js";
 
 export const createNewRoom = async (user1, user2) => {
   try {
+
+    // fiond user1 and user2
     const user1Data = await prisma.user.findUnique({
       where: { email: user1.email },
     });
@@ -12,25 +14,34 @@ export const createNewRoom = async (user1, user2) => {
     if (!user1Data || !user2Data) {
       throw new Error("One or both users not found");
     }
-    // TODO: Нужно обработать когда комната существует
+    // Check existing room
+    let existingRoom = await prisma.room.findUnique({
+      where: { name: `${user1Data.username} & ${user2Data.username}` },
+    });
+    if (existingRoom) {
+      throw new Error("Room already exists");
+    }
+
+    // Create new room
     const room = await prisma.room.create({
       data: {
         name: `${user1Data.username} & ${user2Data.username}`,
       },
     });
+
+    // Join users to room when room created
     const joinUsersToRoom = await prisma.roomUser.createMany({
       data: [
         {
-          userId: user1Data.id,
+          authId: user1.authId,
           roomId: room.id,
         },
         {
-          userId: user2Data.id,
+          authId: user2.authId,
           roomId: room.id,
         },
       ],
     });
-
     return room;
   } catch (error) {
     console.log(error);
@@ -41,21 +52,11 @@ export const createNewRoom = async (user1, user2) => {
 export const findAllUserRooms = async (authId) => {
   try {
     if (!authId) throw new Error("User not found");
-    const { id: userId } = await prisma.user.findUnique({
-      where: {
-        authId: authId,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!userId) throw new Error("User not found");
     const rooms = await prisma.room.findMany({
       where: {
         users: {
           some: {
-            userId: userId,
+            authId: authId,
           },
         },
       },
@@ -63,7 +64,6 @@ export const findAllUserRooms = async (authId) => {
 
     return rooms;
   } catch (error) {
-
     throw new Error(error.message);
   }
 };
