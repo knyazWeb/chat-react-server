@@ -1,9 +1,12 @@
-import { prisma } from "../utils/prisma.js";
+import { prisma } from "../utils/prisma";
 
-export const createNewRoom = async (user1, user2) => {
+interface User {
+  email: string;
+}
+
+export const createNewRoom = async (user1: User, user2: User) => {
   try {
-
-    // fiond user1 and user2
+    // find user1 and user2
     const user1Data = await prisma.user.findUnique({
       where: { email: user1.email },
     });
@@ -30,26 +33,27 @@ export const createNewRoom = async (user1, user2) => {
     });
 
     // Join users to room when room created
-    const joinUsersToRoom = await prisma.roomUser.createMany({
+    await prisma.roomUser.createMany({
       data: [
         {
-          authId: user1.authId,
+          authId: user1Data.authId,
           roomId: room.id,
         },
         {
-          authId: user2.authId,
+          authId: user2Data.authId,
           roomId: room.id,
         },
       ],
     });
+
     return room;
   } catch (error) {
-    console.log(error);
-    throw new Error(error.message);
+    if (error instanceof Error) new Error(error.message)
+    new Error("An error occurred");
   }
 };
 
-export const findAllUserRooms = async (authId) => {
+export const findAllUserRooms = async (authId: string) => {
   try {
     if (!authId) throw new Error("User not found");
     const rooms = await prisma.room.findMany({
@@ -60,10 +64,30 @@ export const findAllUserRooms = async (authId) => {
           },
         },
       },
+      include: {
+        users: true,
+        messages: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 1,
+        },
+      },
     });
 
-    return rooms;
+    const transformedRooms = rooms.map(({ messages, ...room }) => {
+      const lastMessage = messages.length ? messages[0].text : "";
+      const partner = room.users.find((user) => user.authId !== authId);
+      return {
+        ...room,
+        lastMessage,
+        partnerID: partner?.authId as string,
+      };
+    });
+
+    return transformedRooms;
   } catch (error) {
-    throw new Error(error.message);
+    if (error instanceof Error) throw new Error(error.message);
+    throw new Error("An error occurred");
   }
 };

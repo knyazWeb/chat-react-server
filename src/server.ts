@@ -1,36 +1,36 @@
 import express from "express";
 import dotenv from "dotenv";
 import morgan from "morgan";
-import { prisma } from "./app/utils/prisma.js";
 import "colors";
-import authRoutes from "./app/auth/authRoutes.js";
-import chatRoutes from "./app/chat/chatRoutes.js";
-import roomRoutes from "./app/room/roomRoutes.js";
+
 import cors from "cors";
 import http from "http";
-import socketIOMiddleware from "./app/middleware/socketIO.js";
-import { Server } from "socket.io";
-import {webSocket} from "./app/utils/websocket.js";
 
+import { Server as SocketIOServer } from "socket.io";
+import { authRoutes } from "./auth";
+import { chatRoutes } from "./chat";
+import { socketIOMiddleware } from "./middleware";
+import { roomRoutes } from "./room";
+import { prisma, webSocket } from "./utils";
 
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
+const io: SocketIOServer = new SocketIOServer(server, {
   cors: {
     origin: process.env.CLIENT_URL,
     methods: ["GET", "POST"],
   },
 });
 
-async function startServer() {
+async function main() {
   if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 
   app.use(
     cors({
       origin: process.env.CLIENT_URL,
-    }),
+    })
   );
 
   app.use(express.json());
@@ -42,16 +42,14 @@ async function startServer() {
   webSocket(io, prisma);
 
   const PORT = process.env.PORT || 5000;
-  app.listen(
+  server.listen(
     PORT,
-    console.log(
-      `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.blue
-        .bold,
-    ),
+    // @ts-ignore
+    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.blue.bold)
   );
 }
 
-startServer()
+main()
   .then(async () => {
     await prisma.$disconnect();
   })
