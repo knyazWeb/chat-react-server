@@ -18,8 +18,25 @@ export const createNewRoom = async (user1: User, user2: User) => {
       throw new Error("One or both users not found");
     }
     // Check existing room
-    let existingRoom = await prisma.room.findUnique({
-      where: { name: `${user1Data.username} & ${user2Data.username}` },
+    let existingRoom = await prisma.room.findFirst({
+      where: {
+        AND: [
+          {
+            users: {
+              some: {
+                authId: user1Data.authId,
+              },
+            },
+          },
+          {
+            users: {
+              some: {
+                authId: user2Data.authId,
+              },
+            },
+          },
+        ],
+      },
     });
     if (existingRoom) {
       throw new Error("Room already exists");
@@ -31,7 +48,6 @@ export const createNewRoom = async (user1: User, user2: User) => {
         name: `${user1Data.username} & ${user2Data.username}`,
       },
     });
-
     // Join users to room when room created
     await prisma.roomUser.createMany({
       data: [
@@ -48,8 +64,8 @@ export const createNewRoom = async (user1: User, user2: User) => {
 
     return room;
   } catch (error) {
-    if (error instanceof Error) new Error(error.message)
-    new Error("An error occurred");
+    if (error instanceof Error) throw new Error(error.message)
+    throw new Error("An error occurred");
   }
 };
 

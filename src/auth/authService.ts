@@ -58,10 +58,20 @@ export const updateUser = async (
         first_name: username,
       },
     });
-
     if (updatedData.error) {
       throw new Error(updatedData.error.message);
     }
+    
+    await prisma.user.update({
+      where: {
+        email: currentEmail,
+      },
+      data: {
+        username: username,
+      },
+    });
+    
+    
     return updatedData.data.user;
   } catch (error) {
     if (error instanceof Error) throw new Error(error.message);

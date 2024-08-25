@@ -8,7 +8,9 @@ export const createRoom = async (req: Request, res: Response) => {
     res.status(201).json({ room });
   } catch (error) {
     if (error instanceof Error) res.status(500).json({ error: error.message });
-    res.status(500).json({ error: "An error occurred" });
+    else {
+      res.status(500).json({ error: "An error occurred" });
+    }
   }
 };
 
@@ -19,6 +21,8 @@ export const getAllRooms = async (req: Request, res: Response) => {
     res.status(201).json({ rooms });
   } catch (error) {
     if (error instanceof Error) res.status(500).json({ error: error.message });
-    res.status(500).json({ error: "An error occurred" });
+    else {
+      res.status(500).json({ error: "An error occurred" });
+    }
   }
 };

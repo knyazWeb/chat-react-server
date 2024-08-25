@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import {Server as SocketIOServer} from "socket.io";
+import { Server as SocketIOServer } from "socket.io";
 
 interface User {
   authId: string;
@@ -12,7 +12,7 @@ interface Users {
 }
 
 export const webSocket = (io: SocketIOServer, prisma: PrismaClient) => {
-  const users: Users  = {};
+  const users: Users = {};
 
   io.on("connection", (socket) => {
     console.log("New WebSocket connection");
