@@ -51,3 +51,8 @@ model RoomUser {
 
   @@unique([authId, roomId])
 }
+
+model Ping {
+  id        Int      @id @default(autoincrement())
+  oneRow   String
+}
